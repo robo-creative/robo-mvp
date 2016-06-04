@@ -1,7 +1,7 @@
 # Introduction
 Robo MVP is a Model-View-Presenter for Android. Visit its [Official Website](http://robo-creative.github.io/mvp/) for brief guidelines and checkout Demo Center.
 
-Visit [Robo Creative Official Page](http://robo-creative.github.io/) to find more interesting products we contributed to Android community.
+Visit [Robo Creative Official Page](http://robo-creative.github.io/) to find all interesting products we contributed to Android community.
 # License
 ```
 Copyright 2016 Robo Creative - http://robo-creative.github.io
