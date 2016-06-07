@@ -73,6 +73,14 @@ public class MessageBusCoordinatorImp implements MessageBusCoordinator {
     }
 
     @Override
+    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive) {
+        mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, publishingStrategy, keepSubscriberAlive);
+        if (!keepSubscriberAlive) {
+            addSubscriber(subscriber);
+        }
+    }
+
+    @Override
     public <TMessage extends Message> void unsubscribe(Subscriber<TMessage> subscriber) {
         mBus.unsubscribe(subscriber);
         removeSubscriber(subscriber);
@@ -89,7 +97,7 @@ public class MessageBusCoordinatorImp implements MessageBusCoordinator {
     }
 
     @Override
-    public <TMessage extends Message> void publish(TMessage tMessage, boolean keepInHistory, PublishingCallback callback) {
+    public <TMessage extends Message> void publish(TMessage tMessage, boolean keepInHistory, PublisherCallback callback) {
         mBus.publish(tMessage, keepInHistory, callback);
     }
 
