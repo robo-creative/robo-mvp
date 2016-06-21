@@ -27,63 +27,59 @@ import com.robo.messaging.*;
 public class MessageBusCoordinatorImp implements MessageBusCoordinator {
 
     private MessageBus mBus;
-    private WeakHashMap<Subscriber<?>, Subscriber<?>> mSubscribers;
+    private List<SubscriptionToken> mSubscriptionTokens;
 
     public MessageBusCoordinatorImp(MessageBus bus) {
         mBus = bus;
-        mSubscribers = new WeakHashMap<>();
+        mSubscriptionTokens = new ArrayList<>();
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber) {
-        mBus.subscribe(subscriber);
-        addSubscriber(subscriber);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber) {
+         return addToken(mBus.subscribe(subscriber));
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority) {
-        mBus.subscribe(subscriber, priority);
-        addSubscriber(subscriber);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority) {
+        return addToken(mBus.subscribe(subscriber, priority));
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages) {
-        mBus.subscribe(subscriber, priority, acceptsChildMessages);
-        addSubscriber(subscriber);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages) {
+        return addToken(mBus.subscribe(subscriber, priority, acceptsChildMessages));
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages) {
-        mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages);
-        addSubscriber(subscriber);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages) {
+        return addToken(mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages));
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, ThreadOption threadOption) {
-        mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, threadOption);
-        addSubscriber(subscriber);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, ThreadOption threadOption) {
+        return addToken(mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, threadOption));
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, ThreadOption threadOption, boolean keepSubscriberAlive) {
-        mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, threadOption, keepSubscriberAlive);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, ThreadOption threadOption, boolean keepSubscriberAlive) {
+        SubscriptionToken subscriptionToken = mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, threadOption, keepSubscriberAlive);
         if (!keepSubscriberAlive) {
-            addSubscriber(subscriber);
+            addToken(subscriptionToken);
         }
+        return subscriptionToken;
     }
 
     @Override
-    public <TMessage extends Message> void subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive) {
-        mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, publishingStrategy, keepSubscriberAlive);
+    public <TMessage extends Message> SubscriptionToken subscribe(Subscriber<TMessage> subscriber, int priority, boolean acceptsChildMessages, boolean receiveHistoricMessages, PublishingStrategy<TMessage> publishingStrategy, boolean keepSubscriberAlive) {
+        SubscriptionToken subscriptionToken = mBus.subscribe(subscriber, priority, acceptsChildMessages, receiveHistoricMessages, publishingStrategy, keepSubscriberAlive);
         if (!keepSubscriberAlive) {
-            addSubscriber(subscriber);
+            addToken(subscriptionToken);
         }
+        return subscriptionToken;
     }
 
     @Override
-    public <TMessage extends Message> void unsubscribe(Subscriber<TMessage> subscriber) {
-        mBus.unsubscribe(subscriber);
-        removeSubscriber(subscriber);
+    public <TMessage extends Message> void unsubscribe(SubscriptionToken subscriptionToken) {
+        mBus.unsubscribe(removeToken(subscriptionToken));
     }
 
     @Override
@@ -117,24 +113,22 @@ public class MessageBusCoordinatorImp implements MessageBusCoordinator {
     }
 
     public void unsubscribeAll() {
-        for (Iterator<Map.Entry<Subscriber<?>, Subscriber<?>>> iterator = mSubscribers.entrySet().iterator(); iterator.hasNext(); ) {
-            Subscriber<?> subscriber = iterator.next().getKey();
-            if (null != subscriber) {
-                mBus.unsubscribe(subscriber);
-            }
-            iterator.remove();
+        for (int i = 0; i < mSubscriptionTokens.size(); i++) {
+            unsubscribe(mSubscriptionTokens.get(i));
         }
     }
 
-    private void addSubscriber(Subscriber<?> subscriber) {
-        if (null != subscriber && !mSubscribers.containsKey(subscriber)) {
-            mSubscribers.put(subscriber, subscriber);
+    private SubscriptionToken addToken(SubscriptionToken subscriptionToken) {
+        if (!mSubscriptionTokens.contains(subscriptionToken)) {
+            mSubscriptionTokens.add(subscriptionToken);
         }
+        return subscriptionToken;
     }
 
-    private void removeSubscriber(Subscriber<?> subscriber) {
-        if (null != subscriber && mSubscribers.containsKey(subscriber)) {
-            mSubscribers.remove(subscriber);
+    private SubscriptionToken removeToken(SubscriptionToken subscriptionToken) {
+        if (!mSubscriptionTokens.contains(subscriptionToken)) {
+            mSubscriptionTokens.remove(subscriptionToken);
         }
+        return subscriptionToken;
     }
 }
